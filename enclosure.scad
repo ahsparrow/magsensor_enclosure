@@ -133,7 +133,7 @@ module lid() {
     // USB cover
     back(usb_yoffset)
       right(enclosure_width / 2 - 3 * wall_thickness / 2 - clearance)
-        linear_extrude(enclosure_height - 2)
+        linear_extrude(enclosure_height - 1)
           rect([wall_thickness, usb_cutout_width + 2]);
 
     // Board hold down
