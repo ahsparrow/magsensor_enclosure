@@ -15,6 +15,13 @@ flange_width = 10;
 fixing_width = 7.5;
 
 d_height = 12.5;
+d_cutout_height = 13;
+d_cutout_width = 31;
+
+usb_height = 2.5;
+usb_yoffset = 14.8;
+usb_cutout_height = 7.5;
+usb_cutout_width = 11;
 
 wall_thickness = 2;
 rounding = 2;
@@ -52,14 +59,6 @@ module base() {
 }
 
 module wall() {
-  d_cutout_height = 13;
-  d_cutout_width = 31;
-
-  usb_height = 2.5;
-  usb_yoffset = 14.8;
-  usb_cutout_height = 7.5;
-  usb_cutout_width = 11;
-
   difference() {
       linear_extrude(enclosure_height)
         rect([enclosure_width, enclosure_length], rounding = rounding);
@@ -100,7 +99,7 @@ module fixing_holes() {
           }
 
         translate([x, y, enclosure_height - 10])
-          cyl(enclosure_height, d = 2.5, center=false);
+          cyl(enclosure_height, d = 2, center=false);
       }
 }
 
@@ -117,9 +116,53 @@ module mounting() {
       }
 }
 
+module lid() {
+  clearance = 0.5;
+
+  module lid1() {
+    // Top
+    down(wall_thickness - eps)
+      linear_extrude(wall_thickness)
+        rect([enclosure_width, enclosure_length], rounding = rounding);
+
+    // D connector cutout
+    fwd(enclosure_length / 2 - wall_thickness / 2)
+      linear_extrude(enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2))
+        rect([d_cutout_width - 1, wall_thickness]);
+
+    // USB cover
+    back(usb_yoffset)
+      right(enclosure_width / 2 - 3 * wall_thickness / 2 - clearance)
+        linear_extrude(enclosure_height - 2)
+          rect([wall_thickness, usb_cutout_width + 2]);
+
+    // Board hold down
+    x1 = enclosure_width / 2 - 10 / 2 - wall_thickness - clearance;
+    for (x = [x1, -x1])
+      translate([x, 2])
+        linear_extrude(enclosure_height - mount_height - board_thickness - 0.5)
+          rect([enclosure_width / 2 - wall_thickness - board_width / 2 + 5, wall_thickness * 2]);
+  }
+
+  difference() {
+    lid1();
+
+    x1 = enclosure_width / 2 - fixing_width / 2;
+    y1 = enclosure_length / 2 - fixing_width / 2;
+    for (x = [x1, -x1])
+      for (y = [y1, -y1])
+        translate([x, y])
+          cyl(d = 2.8, l = 10);
+  }
+}
+
 base();
 wall();
 fixing_holes();
 mounting();
+
+up(enclosure_height + 10)
+  yrot(180)
+    lid();
 
 //board();
