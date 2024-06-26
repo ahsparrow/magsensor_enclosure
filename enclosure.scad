@@ -137,11 +137,12 @@ module lid() {
           rect([wall_thickness, usb_cutout_width + 2]);
 
     // Board hold down
-    x1 = enclosure_width / 2 - 10 / 2 - wall_thickness - clearance;
+    width = enclosure_width / 2 - wall_thickness - board_width / 2 + 5;
+    x1 = enclosure_width / 2 - width / 2 - wall_thickness - clearance;
     for (x = [x1, -x1])
       translate([x, 2])
         linear_extrude(enclosure_height - mount_height - board_thickness - 0.5)
-          rect([enclosure_width / 2 - wall_thickness - board_width / 2 + 5, wall_thickness * 2]);
+          rect([width, wall_thickness * 2]);
   }
 
   difference() {
@@ -152,17 +153,17 @@ module lid() {
     for (x = [x1, -x1])
       for (y = [y1, -y1])
         translate([x, y])
-          cyl(d = 2.8, l = 10);
+          cyl(d = 2.5, l = 10);
   }
 }
 
-base();
-wall();
-fixing_holes();
-mounting();
+//base();
+//wall();
+//fixing_holes();
+//mounting();
 
-up(enclosure_height + 10)
-  yrot(180)
+//up(enclosure_height + 10)
+//  yrot(180)
     lid();
 
 //board();
