@@ -1,6 +1,6 @@
 include <BOSL2/std.scad>
 
-$fn = 15;
+$fn = 30;
 eps = 1E-2;
 
 board_length = 55.9;
@@ -158,6 +158,11 @@ module lid() {
       translate([x, -y])
         linear_extrude(2)
           rect([width, wall_thickness]);
+
+    // Logo
+    down(wall_thickness)
+      xflip()
+        text3d("CAN-Bell", anchor=CENTER, atype="ycenter");
   }
 
   difference() {
