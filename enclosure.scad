@@ -158,11 +158,6 @@ module lid() {
       translate([x, -y])
         linear_extrude(2)
           rect([width, wall_thickness]);
-
-    // Logo
-    down(wall_thickness)
-      xflip()
-        text3d("CAN-Bell", anchor=CENTER, atype="ycenter");
   }
 
   difference() {
@@ -174,13 +169,38 @@ module lid() {
       for (y = [y1, -y1])
         translate([x, y])
           cyl(d = 2.5, l = 10);
+
+    // Logo text
+    height = wall_thickness;
+    down(wall_thickness * 0.75)
+      xflip()
+        text3d("CAN-Bell", size=9, anchor=CENTER + TOP, atype="ycenter", h=height);
+
+    // Logo bell
+    down(wall_thickness * 1.75)
+      fwd(17)
+        linear_extrude(wall_thickness)
+          scale(0.08)
+            import("bell.svg", center = true);
+
+    // Target marker
+    marker_size = 12;
+    marker_offset = 1;
+    down(wall_thickness * 0.75)
+      back(enclosure_length / 2 - marker_size / 2 - marker_offset) {
+        marker_h = wall_thickness;
+        cube([1, marker_size, marker_h], anchor=TOP);
+        cube([marker_size, 1, marker_h], anchor=TOP);
+        or = marker_size / 2 - 2;
+        tube(marker_h, or=or, ir=or - 1, anchor=TOP);
+      }
   }
 }
 
-base();
-wall();
-fixing_holes();
-mounting();
+//base();
+//wall();
+//fixing_holes();
+//mounting();
 
 up(enclosure_height + 0)
   yrot(180)
