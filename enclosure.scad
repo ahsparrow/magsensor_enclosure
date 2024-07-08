@@ -38,8 +38,8 @@ module board() {
 }
 
 module base() {
-  base_width = enclosure_width + flange_width * 2;
-  base_length = enclosure_length;
+  base_width = enclosure_width;
+  base_length = enclosure_length + flange_width * 2;
   base_height = wall_thickness;
 
   hole_diameter = 4.5;
@@ -69,7 +69,7 @@ module wall() {
 
       // D-connector cutout
       offset = 10;
-      up(mount_height + board_thickness + d_height / 2 + offset / 2)
+      up(mount_height + board_thickness + 1 + d_height / 2 + offset / 2)
         xrot(90)
           linear_extrude(enclosure_length)
             rect([d_cutout_width, d_cutout_height + offset], rounding = rounding);
@@ -126,10 +126,10 @@ module lid() {
         rect([enclosure_width, enclosure_length], rounding = rounding);
 
     // D connector cutout
-    d_top = enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2);
-    fwd(enclosure_length / 2 - wall_thickness - clearance / 2)
+    d_top = enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2) + 1;
+    fwd(enclosure_length / 2 - wall_thickness / 2)
       linear_extrude(d_top)
-        rect([d_cutout_width - 1, wall_thickness + 2 + clearance]);
+        rect([d_cutout_width - 2 * clearance, wall_thickness]);
 
     // USB cover
     cover_len = usb_yoffset + usb_cutout_width / 2 + 1;
@@ -139,19 +139,25 @@ module lid() {
           rect([wall_thickness, cover_len]);
 
     // Board hold down
-    width = enclosure_width / 2 - wall_thickness - board_width / 2 + 5;
-    x1 = enclosure_width / 2 - width / 2 - wall_thickness - clearance;
+    d_width = enclosure_width / 2 - wall_thickness - board_width / 2 + 5;
+    x1 = enclosure_width / 2 - d_width / 2 - wall_thickness - clearance;
     for (x = [x1, -x1])
       translate([x, 2])
         linear_extrude(enclosure_height - mount_height - board_thickness - 0.5)
-          rect([width, wall_thickness * 2]);
+          rect([d_width, wall_thickness * 2]);
 
     // Locating lugs
-    y2 = enclosure_length / 2 - 1.5 * wall_thickness - clearance;
-    for (y = [y2, -y2])
-      translate([0, y])
-        linear_extrude(d_top)
-          rect([enclosure_width - fixing_width * 2 - 2, wall_thickness]);
+    y = enclosure_length / 2 - 1.5 * wall_thickness - clearance;
+    translate([0, y])
+      linear_extrude(2)
+        rect([enclosure_width - fixing_width * 2 - 2, wall_thickness]);
+
+    width = (enclosure_width - fixing_width * 2 - 2 - d_cutout_width) / 2;
+    x2 = (d_cutout_width + width) / 2;
+    for (x = [x2, -x2])
+      translate([x, -y])
+        linear_extrude(2)
+          rect([width, wall_thickness]);
   }
 
   difference() {
@@ -166,13 +172,13 @@ module lid() {
   }
 }
 
-//base();
-//wall();
-//fixing_holes();
-//mounting();
+base();
+wall();
+fixing_holes();
+mounting();
 
-//up(enclosure_height + 0.5)
-//  yrot(180)
+up(enclosure_height + 0)
+  yrot(180)
     lid();
 
 //board();
