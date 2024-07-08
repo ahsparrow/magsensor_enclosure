@@ -185,7 +185,7 @@ module lid() {
 
     // Target marker
     marker_size = 12;
-    marker_offset = 1;
+    marker_offset = 1.5;
     down(wall_thickness * 0.75)
       back(enclosure_length / 2 - marker_size / 2 - marker_offset) {
         marker_h = wall_thickness;
@@ -202,8 +202,8 @@ module lid() {
 //fixing_holes();
 //mounting();
 
-up(enclosure_height + 0)
-  yrot(180)
+//up(enclosure_height + 0)
+//  yrot(180)
     lid();
 
 //board();
