@@ -15,7 +15,7 @@ flange_width = 10;
 fixing_width = 7.5;
 
 d_height = 12.5;
-d_cutout_height = 13;
+d_cutout_height = 10.5;
 d_cutout_width = 31;
 
 usb_height = 2.5;
@@ -37,6 +37,7 @@ module board() {
         rect([board_width, board_length]);
 }
 
+// Enclosure base
 module base() {
   base_width = enclosure_width;
   base_length = enclosure_length + flange_width * 2;
@@ -47,50 +48,59 @@ module base() {
   hole_yoffset = hole_xoffset;
 
   difference() {
-    translate([0, 0, -(base_height - eps)])
-      linear_extrude(base_height)
-        rect([base_width, base_length], rounding = rounding);
+    // Base plate
+    cube([base_width, base_length, base_height], anchor=TOP+CENTER);
 
+    // 4 off fixing holes
     for (x = [-(base_width / 2 - hole_xoffset), base_width / 2 - hole_xoffset])
       for (y = [-(base_length / 2 - hole_yoffset), base_length / 2 - hole_yoffset])
         translate([x, y, 0])
-          cyl(base_height * 3, d = hole_diameter);
+          cylinder(h=base_height * 3, d = hole_diameter, center=true);
   }
 }
 
+// Enclosure wall
 module wall() {
   difference() {
-      linear_extrude(enclosure_height)
-        rect([enclosure_width, enclosure_length], rounding = rounding);
-
-      linear_extrude(enclosure_height + eps)
-          rect([enclosure_width - wall_thickness * 2,
-                enclosure_length - wall_thickness * 2], rounding = rounding);
+      rect_tube(
+        size=[enclosure_width, enclosure_length],
+        height=enclosure_height,
+        wall=wall_thickness,
+        rounding=rounding
+      );
 
       // D-connector cutout
-      offset = 10;
-      up(mount_height + board_thickness + 1 + d_height / 2 + offset / 2)
-        xrot(90)
-          linear_extrude(enclosure_length)
-            rect([d_cutout_width, d_cutout_height + offset], rounding = rounding);
+      fwd(enclosure_length / 2 - wall_thickness / 2)
+        up(mount_height + board_thickness + d_height / 2 - d_cutout_height / 2)
+          // Add 5mm to height to clear above the cut out
+          cuboid(
+            [d_cutout_width, wall_thickness * 2, d_cutout_height + 5],
+            rounding=rounding,
+            edges="Y",
+            anchor=BOTTOM
+          );
 
       // Micro-USB cutout
-      up(mount_height + board_thickness + usb_height / 2)
-        back(usb_yoffset)
-          yrot(-90)
-            zrot(90)
-              linear_extrude(enclosure_width)
-                rect([usb_cutout_width, usb_cutout_height], rounding = rounding);
+        up(mount_height + board_thickness + usb_height / 2 - usb_cutout_height / 2)
+          back(usb_yoffset)
+            left(enclosure_width / 2 - wall_thickness / 2)
+              cuboid(
+                [wall_thickness * 2, usb_cutout_width, usb_cutout_height],
+                rounding=rounding,
+                edges="X",
+                anchor=BOTTOM
+              );
     }
 }
 
-module fixing_holes() {
+// Enclosure corners and lid fixing holes
+module corners() {
   x1 = enclosure_width / 2 - fixing_width / 2 - eps;
   y1 = enclosure_length / 2 - fixing_width / 2 - eps;
   for (x = [x1, -x1])
     for (y = [y1, -y1])
       difference() {
-        linear_extrude(enclosure_height)
+        linear_extrude(enclosure_height - 0.5)
           translate([x, y, 0]) {
             if (x * y > 0)
               rect(fixing_width, rounding = [rounding, 0, rounding, 0]);
@@ -103,6 +113,7 @@ module fixing_holes() {
       }
 }
 
+// PCB mounting
 module mounting() {
   x1 = board_width / 2 - 2.5;
   y1 = board_length / 2 - 2.5;
@@ -185,25 +196,31 @@ module lid() {
 
     // Target marker
     marker_size = 12;
-    marker_offset = 1.5;
+    marker_offset = 7.5;
     down(wall_thickness * 0.75)
-      back(enclosure_length / 2 - marker_size / 2 - marker_offset) {
+      back(enclosure_length / 2 - marker_offset) {
         marker_h = wall_thickness;
-        cube([1, marker_size, marker_h], anchor=TOP);
-        cube([marker_size, 1, marker_h], anchor=TOP);
+        for (x = [0, 90, 180, 270])
+          rotate(x)
+            left(marker_size / 2 - 2)
+              cube([2, 1, marker_h], anchor=TOP);
+        //cube([marker_size, 1, marker_h], anchor=TOP);
         or = marker_size / 2 - 2;
         tube(marker_h, or=or, ir=or - 1, anchor=TOP);
+        cyl(marker_h, d=2, anchor=TOP);
       }
   }
 }
 
-//base();
-//wall();
-//fixing_holes();
-//mounting();
+union() {
+  base();
+  wall();
+  corners();
+  mounting();
+}
 
 //up(enclosure_height + 0)
 //  yrot(180)
-    lid();
+//    lid();
 
 //board();
