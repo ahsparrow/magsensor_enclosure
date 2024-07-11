@@ -142,7 +142,7 @@ module lid() {
       anchor=TOP);
 
     // D connector cutout
-    d_top = enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2) + 1;
+    d_top = enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2);
     fwd(enclosure_length / 2)
       cube([d_cutout_width - 2 * clearance, wall_thickness, d_top], anchor=BOTTOM + FRONT);
 
@@ -226,8 +226,9 @@ union() {
   mounting();
 }
 
-//up(enclosure_height + 0)
-//  yrot(180)
-//    lid();
-
+/*
+up(enclosure_height + 0)
+  yrot(180)
+    lid();
+*/
 //board();
