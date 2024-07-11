@@ -49,7 +49,10 @@ module base() {
 
   difference() {
     // Base plate
-    cube([base_width, base_length, base_height], anchor=TOP+CENTER);
+    cuboid(
+      [base_width, base_length, base_height], anchor=TOP+CENTER,
+      rounding=rounding,
+      edges="Z");
 
     // 4 off fixing holes
     for (x = [-(base_width / 2 - hole_xoffset), base_width / 2 - hole_xoffset])
@@ -208,7 +211,7 @@ module lid() {
           rotate(x)
             left(marker_size / 2 - 2)
               cube([2, 1, marker_h], anchor=TOP);
-        //cube([marker_size, 1, marker_h], anchor=TOP);
+
         or = marker_size / 2 - 2;
         tube(marker_h, or=or, ir=or - 1, anchor=TOP);
         cyl(marker_h, d=2, anchor=TOP);
@@ -216,15 +219,15 @@ module lid() {
   }
 }
 
-//union() {
-//  base();
-//  wall();
-//  corners();
-//  mounting();
-//}
+union() {
+  base();
+  wall();
+  corners();
+  mounting();
+}
 
 //up(enclosure_height + 0)
 //  yrot(180)
-    lid();
+//    lid();
 
 //board();
