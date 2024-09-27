@@ -8,7 +8,18 @@ board_width = 41.4;
 board_thickness = 1.6;
 board_clearance = 0.5;
 
+mount_xoffset = 2.5;
+mount_yoffset1 = 2.5;
+mount_yoffset2 = 15;
+
+pico_length = 51;
+pico_width = 21;
+pico_thickness = 1;
+pico_yoffset = 0;
+
 mount_height = 3;
+mount_base_diameter = 5;
+mount_diameter = 2;
 
 flange_width = 10;
 
@@ -103,7 +114,7 @@ module corners() {
   for (x = [x1, -x1])
     for (y = [y1, -y1])
       difference() {
-        linear_extrude(enclosure_height - 0.5)
+        linear_extrude(enclosure_height)
           translate([x, y, 0]) {
             if (x * y > 0)
               rect(fixing_width, rounding = [rounding, 0, rounding, 0]);
@@ -117,63 +128,106 @@ module corners() {
 }
 
 // PCB mounting
-module mounting() {
-  x1 = board_width / 2 - 2.5;
-  y1 = board_length / 2 - 2.5;
-  y2 = board_length / 2 - 15;
+module can_mounting() {
+  x1 = board_width / 2 - mount_xoffset;
+  y1 = board_length / 2 - mount_yoffset1;
+  y2 = board_length / 2 - mount_yoffset2;
 
   for (x = [x1, -x1])
     for (y = [y1, -y2])
       translate([x, y]) {
-        cyl(mount_height, d = 5, anchor = BOTTOM);
-        cyl(mount_height + 2, d = 2, anchor=BOTTOM);
+        cyl(mount_height, d = mount_base_diameter, anchor = BOTTOM);
+        cyl(mount_height + board_thickness, d = mount_diameter, anchor=BOTTOM);
       }
+}
+
+// PICO W mounting
+module pico_mounting() {
+  width = 5.5;
+  length = 5;
+  clearance = 0.5;
+
+  x1 = (pico_length + clearance) / 2;
+  y1 = (pico_width  + clearance) / 2;
+  thickness = pico_thickness + clearance;
+
+  back(usb_yoffset + usb_cutout_width / 2 - ((pico_width + clearance) / 2 - length / 2) + clearance)
+    difference() {
+      for (x = [x1, -x1])
+        for (y = [y1, -y1])
+          translate([x, y])
+            cube([width - eps, length, enclosure_height], anchor = BOTTOM);
+
+      right(0.5)
+        up(enclosure_height - thickness + eps)
+          cube([pico_length, pico_width, thickness], anchor = BOTTOM);
+    }
 }
 
 module lid() {
   clearance = 0.5;
 
   module lid_volume() {
-    // Top
-    cuboid(
-      [enclosure_width, enclosure_length, wall_thickness],
-      rounding=rounding,
-      edges="Z",
-      anchor=TOP);
+    module top() {
+      cuboid(
+        [enclosure_width, enclosure_length, wall_thickness],
+        rounding=rounding,
+        edges="Z",
+        anchor=TOP);
 
-    // D connector cutout
-    d_top = enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2);
-    fwd(enclosure_length / 2)
-      cube([d_cutout_width - 2 * clearance, wall_thickness, d_top], anchor=BOTTOM + FRONT);
+      // D connector cutout
+      d_top = enclosure_height - (mount_height + board_thickness + d_height / 2 + d_cutout_height / 2);
+      fwd(enclosure_length / 2)
+        cube([d_cutout_width - 2 * clearance, wall_thickness, d_top], anchor=BOTTOM + FRONT);
+    }
 
-    // USB cover
-    cover_len = usb_yoffset + usb_cutout_width / 2 + 1;
-      right(enclosure_width / 2 - wall_thickness - clearance)
-        cube([wall_thickness, cover_len, enclosure_height - 1], anchor=BOTTOM + FRONT + RIGHT);
+    module usb_cover() {
+      cover_len = usb_cutout_width;
+        right(enclosure_width / 2 - wall_thickness - clearance)
+          back(usb_yoffset)
+            cube([wall_thickness, cover_len, enclosure_height - 1], anchor=BOTTOM + RIGHT);
+    }
 
-    // Board hold down
-    d_width = enclosure_width / 2 - wall_thickness - board_width / 2 + 5;
-    x1 = enclosure_width / 2 - d_width / 2 - wall_thickness - clearance;
-    for (x = [x1, -x1])
-      right(x)
+    module hold_downs() {
+      size = 4;
+      height = enclosure_height - mount_height - board_thickness - clearance;
+
+      width = (enclosure_width / 2 - wall_thickness - clearance) - (board_width / 2 - mount_xoffset);
+      x1 = enclosure_width / 2 - width / 2 - wall_thickness - clearance;
+      fwd(board_length / 2 - mount_yoffset2)
+        for (x = [x1, -x1])
+          right(x)
+            cube([width, size, height], anchor=BOTTOM);
+
+      x2 = board_width / 2 - mount_xoffset;
+      length = mount_yoffset1 + mount_diameter / 2;
+      back(board_length / 2 - length / 2)
+        for (x = [x2, -x2])
+          right(x)
+            cube([size, length, height], anchor=BOTTOM);
+    }
+
+    module locating_lugs() {
+      y = enclosure_length / 2 - wall_thickness - clearance;
+      back(y)
         cube(
-           [d_width, wall_thickness * 2, enclosure_height - mount_height - board_thickness - 0.5],
-           anchor=BOTTOM + FRONT
+          [enclosure_width - fixing_width * 2 - 2, wall_thickness, 2],
+          anchor=BOTTOM + BACK
         );
 
-    // Locating lugs
-    y = enclosure_length / 2 - wall_thickness - clearance;
-    back(y)
-      cube(
-        [enclosure_width - fixing_width * 2 - 2, wall_thickness, 2],
-        anchor=BOTTOM + BACK
-      );
+      width = (enclosure_width - fixing_width * 2 - 2 - d_cutout_width) / 2;
+      x1 = (d_cutout_width + width) / 2;
+      for (x = [x1, -x1])
+        translate([x, -y])
+          cube([width, wall_thickness, 2], anchor=BOTTOM+FRONT);
+    }
 
-    width = (enclosure_width - fixing_width * 2 - 2 - d_cutout_width) / 2;
-    x2 = (d_cutout_width + width) / 2;
-    for (x = [x2, -x2])
-      translate([x, -y])
-        cube([width, wall_thickness, 2], anchor=BOTTOM+FRONT);
+    union() {
+        top();
+        //usb_cover();
+        hold_downs();
+        locating_lugs();
+      }
   }
 
   // Add cutouts
@@ -223,7 +277,8 @@ union() {
   base();
   wall();
   corners();
-  mounting();
+  can_mounting();
+  pico_mounting();
 }
 
 /*
@@ -231,4 +286,6 @@ up(enclosure_height + 0)
   yrot(180)
     lid();
 */
+
+//lid();
 //board();
