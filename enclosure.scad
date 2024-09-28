@@ -151,7 +151,7 @@ module pico_mounting() {
   y1 = (pico_width  + clearance) / 2;
   thickness = pico_thickness + clearance;
 
-  back(usb_yoffset + usb_cutout_width / 2 - ((pico_width + clearance) / 2 - length / 2) + clearance)
+  back(usb_yoffset + usb_cutout_width / 2 - ((pico_width + clearance) / 2 - length / 2))
     difference() {
       for (x = [x1, -x1])
         for (y = [y1, -y1])
@@ -160,7 +160,7 @@ module pico_mounting() {
 
       right(0.5)
         up(enclosure_height - thickness + eps)
-          cube([pico_length, pico_width, thickness], anchor = BOTTOM);
+          cube([pico_length + clearance, pico_width + clearance, thickness], anchor = BOTTOM);
     }
 }
 
