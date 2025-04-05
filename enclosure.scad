@@ -37,10 +37,15 @@ usb_cutout_width = 11;
 wall_thickness = 2;
 rounding = 2;
 
+standoff_height = 50;
+standoff_fixing_radius = 70;
+standoff_text = "5";
+
 enclosure_width = board_width + board_clearance * 2 + fixing_width * 2;
 enclosure_length = board_length + board_clearance * 2 + wall_thickness * 2;
 enclosure_height = mount_height + board_thickness + d_height + 1;
 
+//---------------------------------------------------------------------
 module board() {
   color([0.7, 0.7, 0.7])
     up(mount_height)
@@ -48,7 +53,7 @@ module board() {
         rect([board_width, board_length]);
 }
 
-// Enclosure base
+//---------------------------------------------------------------------
 module base() {
   base_width = enclosure_width;
   base_length = enclosure_length + flange_width * 2;
@@ -164,6 +169,7 @@ module pico_mounting() {
     }
 }
 
+//---------------------------------------------------------------------
 module lid() {
   clearance = 0.5;
 
@@ -273,6 +279,71 @@ module lid() {
   }
 }
 
+//---------------------------------------------------------------------
+module standoff() {
+  width = enclosure_width + 20;
+  length = enclosure_length + flange_width * 2;
+
+  cutout_height = 10;
+
+  hole_diameter = 4.6;
+  hole_xoffset = flange_width / 2;
+  hole_yoffset = hole_xoffset;
+
+  tw_width = 7;
+  tw_height = 2.5;
+
+  difference() {
+    union() {
+      cuboid(
+        [width, length, wall_thickness], anchor=BOTTOM+CENTER,
+        rounding=rounding,
+        edges="Z");
+
+      cuboid(
+        [enclosure_width - flange_width * 2, length, standoff_height], anchor=BOTTOM+CENTER,
+        rounding=rounding,
+        edges="Z");
+
+      cuboid(
+        [width, length - flange_width * 2, standoff_height], anchor=BOTTOM+CENTER,
+        rounding=rounding,
+        edges="Z");
+    }
+
+    // 4 off fixing holes
+    for (x = [-(enclosure_width / 2 - hole_xoffset), enclosure_width / 2 - hole_xoffset])
+      for (y = [-(length / 2 - hole_yoffset), length / 2 - hole_yoffset])
+        translate([x, y, -eps])
+          cylinder(h=wall_thickness + 2 * eps, d=hole_diameter, anchor=BOTTOM + CENTER);
+
+    // Tie wrap holes
+    tw_offset = length / 2 - flange_width - tw_width / 2 - rounding * 2;
+    for (y = [-tw_offset, tw_offset])
+      back(y)
+        up(standoff_fixing_radius + wall_thickness)
+          tube(
+            h=tw_width,
+            or=standoff_fixing_radius,
+            ir=standoff_fixing_radius - tw_height,
+            orient=FRONT);
+
+    // Ident text
+    offset = (width - (width - enclosure_width) / 2) / 2;
+    for (x = [offset, -offset])
+      up(-eps)
+        xflip()
+          left(x)
+            text3d(
+              standoff_text,
+              size=9,
+              anchor=CENTER + BOTTOM,
+              atype="ycenter",
+              h=wall_thickness / 4 + eps);
+  }
+}
+
+/*
 union() {
   base();
   wall();
@@ -280,6 +351,7 @@ union() {
   can_mounting();
   pico_mounting();
 }
+*/
 
 /*
 up(enclosure_height + 0)
@@ -289,3 +361,4 @@ up(enclosure_height + 0)
 
 //lid();
 //board();
+standoff();
