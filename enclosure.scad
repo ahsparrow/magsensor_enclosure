@@ -378,7 +378,7 @@ module bracket() {
             for (x = [-front_hole_offset, front_hole_offset])
               right(x)
                 attach(FRONT, TOP, inside=true, shiftout=eps/2)
-                  cylinder(h=front_thickness + eps, d1=front_hole_diameter, d2=front_hole_diameter);
+                  tag("remove") cylinder(h=front_thickness + eps, d1=front_hole_diameter, d2=front_hole_diameter);
 
         back(wall_thickness)
           for (x = [-support_offset, support_offset])
@@ -392,11 +392,10 @@ module bracket() {
               );
       }
 
-      tag("remove")
-        attach(TOP, TOP, inside=true)
-          for (offset = [-screw_offset, screw_offset])
-            right(offset) back(offset)
-              screw_hole(sinfo, tolerance="loose");
+      attach(TOP, TOP, inside=true)
+        for (offset = [-screw_offset, screw_offset])
+          right(offset) back(offset)
+            tag("remove") screw_hole(sinfo, tolerance="loose");
   }
 }
 
