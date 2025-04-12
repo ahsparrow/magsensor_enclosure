@@ -1,4 +1,5 @@
 include <BOSL2/std.scad>
+include <BOSL2/screws.scad>
 
 $fn = 30;
 eps = 1E-2;
@@ -37,9 +38,12 @@ usb_cutout_width = 11;
 wall_thickness = 2;
 rounding = 2;
 
-standoff_height = 50;
+standoff_height1 = 86;
+standoff_height3 = 65;
+standoff_height4 = 67;
+standoff_height5 = 107;
+standoff_height6 = 71;
 standoff_fixing_radius = 70;
-standoff_text = "5";
 
 enclosure_width = board_width + board_clearance * 2 + fixing_width * 2;
 enclosure_length = board_length + board_clearance * 2 + wall_thickness * 2;
@@ -281,6 +285,9 @@ module lid() {
 
 //---------------------------------------------------------------------
 module standoff() {
+  standoff_height = standoff_height3;
+  id_text = "3";
+
   width = enclosure_width + 20;
   length = enclosure_length + flange_width * 2;
 
@@ -335,11 +342,61 @@ module standoff() {
         xflip()
           left(x)
             text3d(
-              standoff_text,
+              id_text,
               size=9,
               anchor=CENTER + BOTTOM,
               atype="ycenter",
               h=wall_thickness / 4 + eps);
+  }
+}
+
+//---------------------------------------------------------------------
+module bracket() {
+  length = 50;
+  base_height = 4;
+  support_thickness = 4;
+
+  width = enclosure_length + 2 * flange_width;
+  front_thickness = wall_thickness;
+  front_height = flange_width;
+  front_hole_offset = (width - flange_width) / 2;
+  front_hole_diameter = 4.5;
+  support_offset = enclosure_length / 2 - support_thickness / 2;
+
+  sinfo = screw_info("M4,10", "flat");
+  screw_offset = 13;
+
+  diff()
+    cuboid([width, length, base_height],
+          rounding=rounding,
+          edges=[BACK+RIGHT, BACK+LEFT]) {
+      position(TOP+FRONT) {
+          cuboid([width, front_thickness, front_height],
+                rounding=rounding,
+                edges=[TOP+RIGHT, TOP+LEFT],
+                anchor=BOTTOM+FRONT)
+            for (x = [-front_hole_offset, front_hole_offset])
+              right(x)
+                attach(FRONT, TOP, inside=true, shiftout=eps/2)
+                  cylinder(h=front_thickness + eps, d1=front_hole_diameter, d2=front_hole_diameter);
+
+        back(wall_thickness)
+          for (x = [-support_offset, support_offset])
+            right(x)
+              prismoid(
+                size1=[support_thickness, length - front_thickness],
+                size2=[support_thickness, 0],
+                shift=[0, -(length - front_thickness) / 2],
+                h=front_height,
+                anchor=FRONT+BOTTOM
+              );
+      }
+
+      tag("remove")
+        attach(TOP, TOP, inside=true)
+          for (offset = [-screw_offset, screw_offset])
+            right(offset) back(offset)
+              screw_hole(sinfo, tolerance="loose");
   }
 }
 
@@ -351,14 +408,14 @@ union() {
   can_mounting();
   pico_mounting();
 }
-*/
 
-/*
 up(enclosure_height + 0)
   yrot(180)
     lid();
+
+lid();
+board();
 */
 
-//lid();
-//board();
-standoff();
+//standoff();
+bracket();
