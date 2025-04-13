@@ -285,13 +285,11 @@ module lid() {
 
 //---------------------------------------------------------------------
 module standoff() {
-  standoff_height = standoff_height3;
-  id_text = "3";
+  standoff_height = standoff_height1;
+  id_text = "1";
 
   width = enclosure_width + 20;
   length = enclosure_length + flange_width * 2;
-
-  cutout_height = 10;
 
   hole_diameter = 4.6;
   hole_xoffset = flange_width / 2;
@@ -300,53 +298,53 @@ module standoff() {
   tw_width = 7;
   tw_height = 2.5;
 
-  difference() {
-    union() {
-      cuboid(
-        [width, length, wall_thickness], anchor=BOTTOM+CENTER,
-        rounding=rounding,
-        edges="Z");
+  diff() {
+    cuboid(
+      [width, length, wall_thickness], anchor=BOTTOM,
+      rounding=rounding,
+      edges="Z");
 
-      cuboid(
-        [enclosure_width - flange_width * 2, length, standoff_height], anchor=BOTTOM+CENTER,
-        rounding=rounding,
-        edges="Z");
+    cuboid(
+      [enclosure_width - flange_width * 2, length, standoff_height], anchor=BOTTOM,
+      rounding=rounding,
+      edges="Z");
 
-      cuboid(
-        [width, length - flange_width * 2, standoff_height], anchor=BOTTOM+CENTER,
-        rounding=rounding,
-        edges="Z");
-    }
+    cuboid(
+      [width, length - flange_width * 2, standoff_height], anchor=BOTTOM,
+      rounding=rounding,
+      edges="Z");
 
     // 4 off fixing holes
-    for (x = [-(enclosure_width / 2 - hole_xoffset), enclosure_width / 2 - hole_xoffset])
-      for (y = [-(length / 2 - hole_yoffset), length / 2 - hole_yoffset])
+    xoffset = enclosure_width / 2 - hole_xoffset;
+    yoffset = length / 2 - hole_yoffset;
+    for (x = [-xoffset, xoffset])
+      for (y = [-yoffset, yoffset])
         translate([x, y, -eps])
-          cylinder(h=wall_thickness + 2 * eps, d=hole_diameter, anchor=BOTTOM + CENTER);
+          tag("remove") cylinder(h=wall_thickness + 2 * eps, d=hole_diameter, anchor=BOTTOM);
 
     // Tie wrap holes
     tw_offset = length / 2 - flange_width - tw_width / 2 - rounding * 2;
     for (y = [-tw_offset, tw_offset])
       back(y)
         up(standoff_fixing_radius + wall_thickness)
-          tube(
+          tag("remove") tube(
             h=tw_width,
             or=standoff_fixing_radius,
             ir=standoff_fixing_radius - tw_height,
             orient=FRONT);
 
     // Ident text
-    offset = (width - (width - enclosure_width) / 2) / 2;
+    offset = ((width + enclosure_width) / 2) / 2;
     for (x = [offset, -offset])
-      up(-eps)
+      down(eps)
         xflip()
           left(x)
-            text3d(
+            tag("remove") text3d(
               id_text,
               size=9,
-              anchor=CENTER + BOTTOM,
+              anchor=BOTTOM,
               atype="ycenter",
-              h=wall_thickness / 4 + eps);
+              h=wall_thickness / 4);
   }
 }
 
@@ -416,5 +414,5 @@ lid();
 board();
 */
 
-//standoff();
-bracket();
+standoff();
+//bracket();
