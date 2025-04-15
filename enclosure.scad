@@ -285,8 +285,8 @@ module lid() {
 
 //---------------------------------------------------------------------
 module standoff() {
-  standoff_height = standoff_height1;
-  id_text = "1";
+  standoff_height = standoff_height5;
+  id_text = "5";
 
   width = enclosure_width + 20;
   length = enclosure_length + flange_width * 2;
@@ -295,6 +295,7 @@ module standoff() {
   hole_xoffset = flange_width / 2;
   hole_yoffset = hole_xoffset;
 
+  wall_width = 10;
   tw_width = 7;
   tw_height = 2.5;
 
@@ -310,7 +311,7 @@ module standoff() {
       edges="Z");
 
     cuboid(
-      [width, length - flange_width * 2, standoff_height], anchor=BOTTOM,
+      [width, enclosure_length, standoff_height], anchor=BOTTOM,
       rounding=rounding,
       edges="Z");
 
@@ -344,7 +345,8 @@ module standoff() {
               size=9,
               anchor=BOTTOM,
               atype="ycenter",
-              h=wall_thickness / 4);
+              h=wall_thickness / 4,
+              font=":style=bold");
   }
 }
 
